@@ -75,6 +75,9 @@ The payload works by:
 
 The payload is persistently stored and executed every time a user views the admin panel settings page.
 
+<img width="951" height="804" alt="Screenshot 2026-08-14 201115" src="https://github.com/user-attachments/assets/33eb5eb2-220a-451f-8efe-9cad8b89a133" />
+
+
 <img width="1389" height="415" alt="Screenshot 2026-08-14 201100" src="https://github.com/user-attachments/assets/b51acf75-94b9-4471-8e16-1a0a22911e41" />
 
 
