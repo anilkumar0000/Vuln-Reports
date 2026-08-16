@@ -77,7 +77,8 @@ The payload works by:
 
 The payload is persistently stored and executed every time a user views the site settings page.
 
-<img width="951" height="804" alt="Screenshot 2026-08-14 201115" src="https://github.com/user-attachments/assets/a22075d4-19a2-4661-91a9-96e0b660c1de" />
+<img width="1052" height="242" alt="Screenshot 2026-08-14 201320" src="https://github.com/user-attachments/assets/657d9268-fd58-4c75-ad6e-f2f08c169111" />
+
 
 <img width="1574" height="526" alt="Screenshot 2026-08-14 201234" src="https://github.com/user-attachments/assets/d6e6b3a9-bddf-459d-811a-ee1c2eb450a4" />
 
